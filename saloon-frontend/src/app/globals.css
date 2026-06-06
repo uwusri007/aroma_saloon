@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-body text-charcoal bg-cream antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-rose-gold text-white font-medium rounded-full
+    hover:bg-rose-dark transition-all duration-300 shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-rose-gold text-rose-gold font-medium rounded-full
+    hover:bg-rose-gold hover:text-white transition-all duration-300;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-charcoal/70 hover:text-rose-gold transition-colors;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 border border-blush rounded-xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-rose-gold/30 focus:border-rose-gold transition-all;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-soft border border-blush/50 overflow-hidden;
+  }
+  .section-title {
+    @apply text-3xl md:text-4xl font-display font-semibold text-charcoal;
+  }
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+}
