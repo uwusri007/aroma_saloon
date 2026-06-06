@@ -1,5 +1,16 @@
 const { query } = require('../config/db');
 
+function normalizeDateString(dateInput) {
+  if (!dateInput) return dateInput;
+  if (typeof dateInput === 'string') {
+    return dateInput.split('T')[0];
+  }
+  if (dateInput instanceof Date) {
+    return dateInput.toISOString().split('T')[0];
+  }
+  return String(dateInput).split('T')[0];
+}
+
 function timeToMinutes(timeStr) {
   const [h, m] = timeStr.split(':').map(Number);
   return h * 60 + m;
@@ -20,7 +31,8 @@ function timesOverlap(start1, end1, start2, end2) {
 }
 
 async function getWorkingHoursForDate(dateStr) {
-  const date = new Date(dateStr + 'T00:00:00');
+  const normalizedDate = normalizeDateString(dateStr);
+  const date = new Date(`${normalizedDate}T00:00:00`);
   const dayOfWeek = date.getDay();
 
   const hours = await query(
@@ -36,7 +48,7 @@ async function getWorkingHoursForDate(dateStr) {
 }
 
 async function isHoliday(dateStr) {
-  const holidays = await query('SELECT id FROM holidays WHERE date = ?', [dateStr]);
+  const holidays = await query('SELECT id FROM holidays WHERE date = ?', [normalizeDateString(dateStr)]);
   return holidays.length > 0;
 }
 
@@ -65,7 +77,7 @@ async function getExistingAppointments(dateStr, staffId = null) {
     WHERE appointment_date = ?
     AND status IN ('Pending Payment', 'Confirmed')
   `;
-  const params = [dateStr];
+  const params = [normalizeDateString(dateStr)];
 
   if (staffId) {
     sql += ' AND staff_id = ?';
@@ -132,11 +144,13 @@ async function generateAvailableSlots(dateStr, durationMinutes, treatmentIds) {
 }
 
 async function checkSlotAvailability(dateStr, startTime, durationMinutes, staffId, excludeAppointmentId = null) {
-  if (await isHoliday(dateStr)) {
+  const normalizedDate = normalizeDateString(dateStr);
+
+  if (await isHoliday(normalizedDate)) {
     return { available: false, reason: 'Salon is closed on this date' };
   }
 
-  const workingHours = await getWorkingHoursForDate(dateStr);
+  const workingHours = await getWorkingHoursForDate(normalizedDate);
   if (!workingHours) {
     return { available: false, reason: 'Salon is closed on this day' };
   }
@@ -159,7 +173,7 @@ async function checkSlotAvailability(dateStr, startTime, durationMinutes, staffI
     AND status IN ('Pending Payment', 'Confirmed')
     AND start_time < ? AND end_time > ?
   `;
-  const params = [dateStr, staffId, endTime, startTimeFormatted];
+  const params = [normalizedDate, staffId, endTime, startTimeFormatted];
 
   if (excludeAppointmentId) {
     sql += ' AND id != ?';

@@ -46,7 +46,7 @@ const appointmentValidators = {
   calculate: [body('treatment_ids').isArray({ min: 1 })],
   create: [
     body('treatment_ids').isArray({ min: 1 }),
-    body('appointment_date').isISO8601().toDate(),
+    body('appointment_date').isISO8601(),
     body('start_time').matches(/^\d{2}:\d{2}(:\d{2})?$/),
     body('staff_id').isInt(),
   ],

@@ -70,7 +70,8 @@ async function calculateBooking(req, res) {
 }
 
 async function createAppointment(req, res) {
-  const { treatment_ids, appointment_date, start_time, staff_id, notes } = req.body;
+  const { treatment_ids, start_time, staff_id, notes } = req.body;
+  const appointment_date = String(req.body.appointment_date).split('T')[0];
   const customerId = req.user.id;
 
   const ids = treatment_ids || [];
@@ -194,11 +195,13 @@ async function cancelAppointment(req, res) {
 
 async function getSuggestions(req, res) {
   const pastTreatments = await query(
-    `SELECT DISTINCT at.treatment_id
+    `SELECT at.treatment_id
      FROM appointment_treatments at
      JOIN appointments a ON at.appointment_id = a.id
      WHERE a.customer_id = ? AND a.status IN ('Confirmed', 'Completed')
-     ORDER BY a.created_at DESC LIMIT 5`,
+     GROUP BY at.treatment_id
+     ORDER BY MAX(a.created_at) DESC
+     LIMIT 5`,
     [req.user.id]
   );
 
