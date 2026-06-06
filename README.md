@@ -22,27 +22,19 @@ A full-stack online booking platform for a ladies salon with customer booking, P
 
 ## Quick Start
 
-### Option A: Docker Desktop (backend + MySQL)
-
-```bash
-cd salon-backend
-docker compose up --build -d
-```
-
-API: http://localhost:5000/api/health
-
-### Option B: Local setup
-
-### 1. Backend
+### 1. Backend (Docker: MySQL + MailHog, API runs locally)
 
 ```bash
 cd salon-backend
 npm install
 cp .env.example .env
-# Edit .env with MySQL and PayPal credentials
+npm run docker:up
 npm run db:setup
 npm run dev
 ```
+
+- API: http://localhost:5000/api/health
+- MailHog inbox: http://localhost:8026
 
 ### 2. Frontend
 

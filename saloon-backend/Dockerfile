@@ -9,7 +9,7 @@ COPY database ./database
 COPY src ./src
 COPY docker-entrypoint.sh ./
 
-RUN chmod +x docker-entrypoint.sh && mkdir -p uploads
+RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh && mkdir -p uploads
 
 EXPOSE 5000
 

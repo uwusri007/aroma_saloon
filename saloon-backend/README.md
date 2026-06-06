@@ -12,56 +12,80 @@ REST API for the Aroma Ladies Salon online booking platform.
 
 ## Prerequisites
 
-- Node.js 18+ and MySQL 8+ (for local setup), **or**
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (recommended)
+- Node.js 18+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for MySQL and MailHog)
 
-## Run with Docker Desktop (recommended)
+## Development setup
 
-1. Open **Docker Desktop** and ensure it is running.
+Docker runs **MySQL** and **MailHog** only. The API runs locally with nodemon.
 
-2. From the `salon-backend` folder, copy env file (optional — defaults work for local Docker):
+### 1. Start MySQL and MailHog
+
+```bash
+cd salon-backend
+npm run docker:up
+```
+
+| Service | URL / connection |
+|---------|------------------|
+| MySQL | `localhost:3307` (user: `root`, password: `salon_root_pass`) |
+| MailHog inbox | http://localhost:8026 |
+| MailHog SMTP | `localhost:1026` |
+
+### 2. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-3. Start MySQL + API:
+`.env.example` is already set for local API + Docker MySQL/MailHog. Edit PayPal credentials if needed.
+
+### 3. Install dependencies and set up the database (first time)
 
 ```bash
-docker compose up --build -d
+npm install
+npm run db:setup
 ```
 
-Or use npm script:
+### 4. Start the API locally
 
 ```bash
-npm run docker:up
+npm run dev
 ```
 
-4. Verify the API:
+API runs at http://localhost:5000
+
+Verify:
 
 ```bash
 curl http://localhost:5000/api/health
 ```
 
-| Service | URL |
-|---------|-----|
-| API | http://localhost:5000 |
-| MySQL (host access) | `localhost:3307` |
-
-**Useful commands:**
-
-```bash
-npm run docker:logs    # follow API logs
-npm run docker:down    # stop containers
-npm run docker:restart # rebuild and restart
-```
-
-Docker automatically runs database migration and seed on startup.
-
 **Frontend connection:** set in `salon-frontend/.env.local`:
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+### Troubleshooting
+
+**MySQL access denied:** If you changed `DB_PASSWORD` after MySQL was first created, the old password is stored in the Docker volume. Either restore the original password in `.env`, or reset the database:
+
+```bash
+npm run docker:down
+docker volume rm saloon-backend_salon_mysql_data
+npm run docker:up
+npm run db:setup
+```
+
+### Useful commands
+
+```bash
+npm run docker:logs     # follow MySQL / MailHog logs
+npm run docker:down     # stop Docker containers
+npm run docker:restart  # restart MySQL and MailHog
+npm run db:migrate      # run migrations
+npm run db:seed         # seed sample data
 ```
 
 ### Docker environment variables
@@ -73,42 +97,21 @@ Configure in `.env` (read by `docker-compose.yml`):
 | `DB_PASSWORD` | `salon_root_pass` | MySQL root password |
 | `DB_NAME` | `salon_booking` | Database name |
 | `DB_HOST_PORT` | `3307` | MySQL port on your machine |
-| `PORT` | `5000` | API port |
-| `JWT_SECRET` | (change in prod) | JWT signing key |
-| `FRONTEND_URL` | `http://localhost:3000` | CORS / email links |
-| `PAYPAL_CLIENT_ID` | — | PayPal sandbox client ID |
-| `PAYPAL_CLIENT_SECRET` | — | PayPal sandbox secret |
+| `MAILHOG_SMTP_PORT` | `1026` | MailHog SMTP port on your machine |
+| `MAILHOG_UI_PORT` | `8026` | MailHog web UI port on your machine |
 
-## Local Setup (without Docker)
+### Email testing (MailHog)
 
-1. Install dependencies:
-
-```bash
-cd salon-backend
-npm install
-```
-
-2. Copy environment file and configure:
+1. Ensure Docker is running (`npm run docker:up`).
+2. Start the API (`npm run dev`).
+3. Open http://localhost:8026 to view captured emails.
+4. Trigger an email, e.g. forgot password:
 
 ```bash
-cp .env.example .env
+curl -X POST http://localhost:5000/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"customer@example.com\"}"
 ```
-
-Edit `.env` with your MySQL credentials, JWT secret, and PayPal sandbox credentials.
-
-3. Create database and run migrations + seed:
-
-```bash
-npm run db:setup
-```
-
-4. Start the development server:
-
-```bash
-npm run dev
-```
-
-API runs at `http://localhost:5000`
 
 ## Default Seed Credentials
 
@@ -157,10 +160,10 @@ API runs at `http://localhost:5000`
 
 ## Scripts
 
-- `npm run dev` - Start with nodemon
+- `npm run dev` - Start API with nodemon (local)
 - `npm run db:migrate` - Run database migration
 - `npm run db:seed` - Seed sample data
 - `npm run db:setup` - Migrate + seed
-- `npm run docker:up` - Start with Docker Desktop
+- `npm run docker:up` - Start MySQL and MailHog in Docker
 - `npm run docker:down` - Stop Docker containers
-- `npm run docker:logs` - View API container logs
+- `npm run docker:logs` - View MySQL and MailHog logs

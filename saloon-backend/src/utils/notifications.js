@@ -6,19 +6,24 @@ let transporter = null;
 function getTransporter() {
   if (transporter) return transporter;
 
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+  if (!process.env.SMTP_HOST) {
     return null;
   }
 
-  transporter = nodemailer.createTransport({
+  const config = {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: false,
-    auth: {
+    secure: process.env.SMTP_SECURE === 'true',
+  };
+
+  if (process.env.SMTP_USER) {
+    config.auth = {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
-    },
-  });
+    };
+  }
+
+  transporter = nodemailer.createTransport(config);
 
   return transporter;
 }

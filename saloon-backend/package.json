@@ -9,10 +9,10 @@
     "db:migrate": "node database/migrate.js",
     "db:seed": "node database/seed.js",
     "db:setup": "node database/migrate.js && node database/seed.js",
-    "docker:up": "docker compose up --build -d",
+    "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f api",
-    "docker:restart": "docker compose down && docker compose up --build -d"
+    "docker:logs": "docker compose logs -f mysql mailhog",
+    "docker:restart": "docker compose down && docker compose up -d"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",

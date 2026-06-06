@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { query } = require('../config/db');
 const { signToken } = require('../utils/jwt');
 const { success, error } = require('../utils/response');
+const { sendEmail } = require('../utils/notifications');
 
 async function register(req, res) {
   const { email, password, first_name, last_name, phone } = req.body;
@@ -72,7 +73,18 @@ async function forgotPassword(req, res) {
   );
 
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-  console.log(`Password reset link for ${email}: ${resetUrl}`);
+  const html = `
+    <h2>Password Reset</h2>
+    <p>Dear ${users[0].first_name},</p>
+    <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+    <p><a href="${resetUrl}">Reset Password</a></p>
+    <p>If you did not request this, you can ignore this email.</p>
+  `;
+  await sendEmail(users[0].email, 'Password Reset Request', html);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Password reset link for ${email}: ${resetUrl}`);
+  }
 
   return success(res, { resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined }, 'If the email exists, a reset link has been sent');
 }
